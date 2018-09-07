@@ -8,7 +8,7 @@ ANALYSISDIR=${MAINDIR}/analysis/${MYSUB}
 SPMDIR=/Users/erin/Documents/MATLAB/spm12
 SCRIPTSDIR=${MAINDIR}/scripts
 minTR=3480
-minTR_WB=4000
+minTR_WB=4025 # don't actually use this
 
 ###### DE-PCASL ##########################################################################
 CWD=`pwd`
@@ -16,8 +16,9 @@ CWD=`pwd`
 cd ${SUBDIR}/PU_CO2_epiRTmeasl_
 ${SCRIPTSDIR}/run_preproc.sh CO2_O2 ${minTR}
 
+# use a separate script for this one because 1) spm_realign_asl fails for only two volumes and 2) we don't need to calculate CBF for this run
 cd ${SUBDIR}/PU_WB_epiRTmeasl
-${SCRIPTSDIR}/run_preproc.sh WB ${minTR_WB}
+${SCRIPTSDIR}/run_preproc_WB.sh WB
 
 cd ${SUBDIR}/PU_epiRTmeasl_motor_run1
 ${SCRIPTSDIR}/run_preproc.sh motor_run1 ${minTR}
@@ -30,12 +31,15 @@ cd $CWD
 mv ${SUBDIR}/medata/* ${ANALYSISDIR}/.
 rm -r ${SUBDIR}/medata
 
-for f in `ls ${ANALYSISDIR}/*e0*.nii.gz`
+for f in `ls -d ${ANALYSISDIR}/sr*e0*.nii*`
 do
 	fsleyes $f &
 done 
 
-
+for f in `ls ${ANALYSISDIR}/meanCBF*.nii`
+do
+	fsleyes $f &
+done 
 
 
 ###### T1 ################################################################################
