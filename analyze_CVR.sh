@@ -1,0 +1,9 @@
+#!/bin/bash
+
+MYSUB=$1
+MAINDIR=/Users/erin/Desktop/Projects/qfMRI_MS
+ANALYSISDIR=${MAINDIR}/analysis/${MYSUB}
+SCRIPTSDIR=${MAINDIR}/scripts
+
+fslroi ${ANALYSISDIR}/rCO2_O2.e01 ${ANALYSISDIR}/rCO2.e01 0 102
+fslroi ${ANALYSISDIR}/rCO2_O2.e02 ${ANALYSISDIR}/rCO2.e02 0 102

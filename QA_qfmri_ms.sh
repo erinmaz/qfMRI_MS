@@ -9,6 +9,10 @@ SPMDIR=/Users/erin/Documents/MATLAB/spm12
 SCRIPTSDIR=${MAINDIR}/scripts
 minTR=3480
 minTR_WB=4025 # don't actually use this
+TR=3.5
+
+mkdir ${ANALYSISDIR}
+
 
 ###### DE-PCASL ##########################################################################
 CWD=`pwd`
@@ -17,8 +21,11 @@ cd ${SUBDIR}/PU_CO2_epiRTmeasl_
 ${SCRIPTSDIR}/run_preproc.sh CO2_O2 ${minTR}
 
 # use a separate script for this one because 1) spm_realign_asl fails for only two volumes and 2) we don't need to calculate CBF for this run
+# WB data were not acquired for all participants
+if [ -e ${SUBDIR}/PU_WB_epiRTmeasl ]; then
 cd ${SUBDIR}/PU_WB_epiRTmeasl
 ${SCRIPTSDIR}/run_preproc_WB.sh WB
+fi
 
 cd ${SUBDIR}/PU_epiRTmeasl_motor_run1
 ${SCRIPTSDIR}/run_preproc.sh motor_run1 ${minTR}
@@ -31,18 +38,35 @@ cd $CWD
 mv ${SUBDIR}/medata/* ${ANALYSISDIR}/.
 rm -r ${SUBDIR}/medata
 
-for f in `ls -d ${ANALYSISDIR}/sr*e0*.nii*`
+#SPM is setting the TR to 1, need to set it back to the correct value
+for f in `ls -d ${ANALYSISDIR}/*e0*.nii*`
+do
+	fslchfiletype NIFTI_GZ ${f}
+	fslmerge -tr ${f} ${f} ${TR}	
+done
+
+for f in `ls -d ${ANALYSISDIR}/r*e0*.nii.gz`
 do
 	fsleyes $f &
 done 
 
-for f in `ls ${ANALYSISDIR}/meanCBF*.nii`
+for f in `ls -d ${ANALYSISDIR}/rCO2_O2.e0*.nii.gz` `ls -d ${ANALYSISDIR}/rmotor_run1.e0*.nii.gz` `ls -d ${ANALYSISDIR}/rmotor_run2.e0*.nii.gz`
 do
-	fsleyes $f &
+	g=`basename $f .nii.gz`
+	fslmaths $f -Tmean ${ANALYSISDIR}/${g}_Tmean
+	fslmaths $f -Tstd ${ANALYSISDIR}/${g}_Tstd
+	fslmaths ${ANALYSISDIR}/${g}_Tmean -div ${ANALYSISDIR}/${g}_Tstd ${ANALYSISDIR}/${g}_Tsnr
+	fsleyes ${ANALYSISDIR}/${g}_Tsnr &
+done
+
+for f in `ls ${ANALYSISDIR}/meanCBF*.nii.gz`
+do
+	fsleyes $f -dr 0 100 &
 done 
 
 
 ###### T1 ################################################################################
+rm ${SUBDIR}/PU*BRAVO*/*.nii*
 dcm2niix ${SUBDIR}/PU*BRAVO*
 mv ${SUBDIR}/PU*BRAVO*/*.nii.gz ${ANALYSISDIR}/T1.nii.gz
 fslchfiletype NIFTI ${ANALYSISDIR}/T1
@@ -55,24 +79,33 @@ fsleyes ${ANALYSISDIR}/T1 ${ANALYSISDIR}/spm_mask &
 
 
 ###### FLAIR #############################################################################	
+rm ${SUBDIR}/FL_B_PU_Sag_CUBE_FLAIR_1_x_1.5_x_1.5/*.nii*
 dcm2niix ${SUBDIR}/FL_B_PU_Sag_CUBE_FLAIR_1_x_1.5_x_1.5
 mv ${SUBDIR}/FL_B_PU_Sag_CUBE_FLAIR_1_x_1.5_x_1.5/*.nii.gz ${ANALYSISDIR}/FLAIR.nii.gz
 fsleyes ${ANALYSISDIR}/FLAIR.nii.gz &
 
 
 ###### BOLD ##############################################################################
+rm ${SUBDIR}/PU_BOLD_/*.nii*
 dcm2niix ${SUBDIR}/PU_BOLD_
 mv ${SUBDIR}/PU_BOLD_/*.nii.gz ${ANALYSISDIR}/BOLD.nii.gz
-fsleyes ${ANALYSISDIR}/BOLD.nii.gz
+fsleyes ${ANALYSISDIR}/BOLD.nii.gz &
+
+fslmaths ${ANALYSISDIR}/BOLD -Tmean ${ANALYSISDIR}/BOLD_Tmean
+fslmaths ${ANALYSISDIR}/BOLD -Tstd ${ANALYSISDIR}/BOLD_Tstd
+fslmaths ${ANALYSISDIR}/BOLD_Tmean -div ${ANALYSISDIR}/BOLD_Tstd ${ANALYSISDIR}/BOLD_Tsnr
+fsleyes ${ANALYSISDIR}/BOLD_Tsnr &
 
 
 ###### eASL ##############################################################################
+rm ${SUBDIR}/eASL__Transit-corrected_Flow/*.nii*
 dcm2niix ${SUBDIR}/eASL__Transit-corrected_Flow
 mv ${SUBDIR}/eASL__Transit-corrected_Flow/*.nii.gz ${ANALYSISDIR}/eASL_transit_corrected_flow.nii.gz
 	
+rm ${SUBDIR}/eASL__Transit_delay_/*.nii*
 dcm2niix ${SUBDIR}/eASL__Transit_delay_
 mv ${SUBDIR}/eASL__Transit_delay_/*.nii.gz ${ANALYSISDIR}/eASL_transit_delay.nii.gz
 
-fsleyes ${ANALYSISDIR}/eASL_transit_corrected_flow.nii.gz ${ANALYSISDIR}/eASL_transit_delay.nii.gz
+fsleyes ${ANALYSISDIR}/eASL_transit_corrected_flow.nii.gz -dr 0 100 ${ANALYSISDIR}/eASL_transit_delay.nii.gz
 
 
