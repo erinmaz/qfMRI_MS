@@ -28,7 +28,7 @@ do
 done
 done
 
-for f in `ls -d ${ANALYSISDIR}/r*e01.nii.gz`
+for f in ${ANALYSISDIR}/rCO2_O2.e01.nii.gz ${ANALYSISDIR}/rmotor_run1.e01.nii.gz ${ANALYSISDIR}/rmotor_run2.e01.nii.gz
 do
 	g=`basename $f .nii.gz`
 	myfiles=`echo $myfiles ${g}_sub`
