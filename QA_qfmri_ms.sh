@@ -50,15 +50,6 @@ do
 	fsleyes $f &
 done 
 
-for f in `ls -d ${ANALYSISDIR}/rCO2_O2.e0*.nii.gz` `ls -d ${ANALYSISDIR}/rmotor_run1.e0*.nii.gz` `ls -d ${ANALYSISDIR}/rmotor_run2.e0*.nii.gz`
-do
-	g=`basename $f .nii.gz`
-	fslmaths $f -Tmean ${ANALYSISDIR}/${g}_Tmean
-	fslmaths $f -Tstd ${ANALYSISDIR}/${g}_Tstd
-	fslmaths ${ANALYSISDIR}/${g}_Tmean -div ${ANALYSISDIR}/${g}_Tstd ${ANALYSISDIR}/${g}_Tsnr
-	fsleyes ${ANALYSISDIR}/${g}_Tsnr &
-done
-
 for f in `ls ${ANALYSISDIR}/meanCBF*.nii.gz`
 do
 	fsleyes $f -dr 0 100 &
@@ -106,6 +97,6 @@ rm ${SUBDIR}/eASL__Transit_delay_/*.nii*
 dcm2niix ${SUBDIR}/eASL__Transit_delay_
 mv ${SUBDIR}/eASL__Transit_delay_/*.nii.gz ${ANALYSISDIR}/eASL_transit_delay.nii.gz
 
-fsleyes ${ANALYSISDIR}/eASL_transit_corrected_flow.nii.gz -dr 0 100 ${ANALYSISDIR}/eASL_transit_delay.nii.gz
+fsleyes ${ANALYSISDIR}/eASL_transit_corrected_flow.nii.gz -dr 0 100 ${ANALYSISDIR}/eASL_transit_delay.nii.gz &
 
 
