@@ -76,17 +76,6 @@ mv ${SUBDIR}/FL_B_PU_Sag_CUBE_FLAIR_1_x_1.5_x_1.5/*.nii.gz ${ANALYSISDIR}/FLAIR.
 fsleyes ${ANALYSISDIR}/FLAIR.nii.gz &
 
 
-###### BOLD ##############################################################################
-rm ${SUBDIR}/PU_BOLD_/*.nii*
-dcm2niix ${SUBDIR}/PU_BOLD_
-mv ${SUBDIR}/PU_BOLD_/*.nii.gz ${ANALYSISDIR}/BOLD.nii.gz
-fsleyes ${ANALYSISDIR}/BOLD.nii.gz &
-
-fslmaths ${ANALYSISDIR}/BOLD -Tmean ${ANALYSISDIR}/BOLD_Tmean
-fslmaths ${ANALYSISDIR}/BOLD -Tstd ${ANALYSISDIR}/BOLD_Tstd
-fslmaths ${ANALYSISDIR}/BOLD_Tmean -div ${ANALYSISDIR}/BOLD_Tstd ${ANALYSISDIR}/BOLD_Tsnr
-fsleyes ${ANALYSISDIR}/BOLD_Tsnr &
-
 
 ###### eASL ##############################################################################
 rm ${SUBDIR}/eASL__Transit-corrected_Flow/*.nii*
